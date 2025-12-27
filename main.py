@@ -1,6 +1,7 @@
 # ==========================================
 # main.py
 # Discord Bot 起動用メインファイル
+# Cogロード + Slashコマンド同期対応
 # Koyeb用HealthCheck対応済み
 # ==========================================
 import os
@@ -30,11 +31,19 @@ async def load_cogs():
             print(f"[ERROR] Failed to load {extension}: {e}")
 
 # ==========================================
-# setup_hookで非同期ロード
+# setup_hook で Cogロード + コマンド同期
 # ==========================================
 @bot.event
 async def setup_hook():
-    bot.loop.create_task(load_cogs())
+    # Cogをロード
+    await load_cogs()
+
+    # グローバル同期（サーバーにSlashコマンドを登録）
+    try:
+        await bot.tree.sync()
+        print("[INFO] Application commands synced globally!")
+    except Exception as e:
+        print(f"[ERROR] Failed to sync commands: {e}")
 
 # ==========================================
 # HealthCheck用簡易Webサーバー
