@@ -1,54 +1,63 @@
 # ==========================================
 # main.py
-# Botメイン起動ファイル
-# Discord.py v2対応、Cogを非同期でロード
+# Discord Bot 起動用メインファイル
+# Koyeb用HealthCheck対応済み
 # ==========================================
 import os
-import discord
+import asyncio
 from discord.ext import commands
+import discord
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="/", intents=intents)
 
 # ==========================================
-# Cogリスト
+# Cogを非同期でロード
 # ==========================================
-cogs = [
-    "cogs.general.ping",
-    "cogs.general.help",
-    "cogs.general.about",
-    "cogs.general.stats",
-    "cogs.admin.ban",
-    "cogs.admin.kick",
-    "cogs.admin.timeout",
-    "cogs.admin.unban_untimeout",
-    "cogs.moderation.moderation",
-    "cogs.tickets.ticket_panel",
-    "cogs.tickets.ticket_management",
-    "cogs.youtube_notification.youtube_notif"
-]
-
-# ==========================================
-# setup_hookでCogを非同期ロード
-# ==========================================
-async def setup_hook():
-    for cog in cogs:
+async def load_cogs():
+    for extension in [
+        "cogs.admin",
+        "cogs.moderation",
+        "cogs.general",
+        "cogs.tickets",
+        "cogs.youtube_notification",
+        "cogs.stats"
+    ]:
         try:
-            await bot.load_extension(cog)
-            print(f"[INFO] Cog loaded: {cog}")
+            await bot.load_extension(extension)
+            print(f"[INFO] Cog loaded: {extension}")
         except Exception as e:
-            print(f"[ERROR] Failed to load {cog}: {e}")
-
-bot.setup_hook = setup_hook
+            print(f"[ERROR] Failed to load {extension}: {e}")
 
 # ==========================================
-# Bot起動完了イベント
+# setup_hookで非同期ロード
 # ==========================================
 @bot.event
-async def on_ready():
-    print(f"Bot is ready: {bot.user} (ID: {bot.user.id})")
+async def setup_hook():
+    bot.loop.create_task(load_cogs())
 
 # ==========================================
-# Bot実行
+# HealthCheck用簡易Webサーバー
 # ==========================================
-bot.run(os.environ["BOT_TOKEN"])
+from flask import Flask
+app = Flask(__name__)
+
+@app.route("/")
+def index():
+    return "Bot is running!", 200
+
+# 別スレッドでFlaskを起動
+import threading
+def run_flask():
+    app.run(host="0.0.0.0", port=8080)
+
+threading.Thread(target=run_flask, daemon=True).start()
+
+# ==========================================
+# Botを起動
+# ==========================================
+if __name__ == "__main__":
+    token = os.environ.get("BOT_TOKEN")
+    if not token:
+        raise RuntimeError("BOT_TOKEN が設定されていません！")
+    bot.run(token)
