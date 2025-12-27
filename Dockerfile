@@ -25,4 +25,4 @@ COPY . .
 
 # 環境変数はKoyeb側で設定（.env使用可能）
 # CMDでBot起動
-CMD ["python", "-u", "bot.py"]
+CMD ["python", "-u", "main.py"]
