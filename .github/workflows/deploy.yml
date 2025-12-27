@@ -24,8 +24,8 @@ jobs:
 
       # Dockerイメージビルド
       - name: Build Docker image
-        run: docker build -t yourusername/discord-bot:latest .
+        run: docker build -t 0to784/discord-bot-yuki:latest .
 
       # DockerHubにPush
       - name: Push Docker image
-        run: docker push yourusername/discord-bot:latest
+        run: docker push 0to784/discord-bot-yuki:latest
