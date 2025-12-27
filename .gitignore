@@ -1,0 +1,29 @@
+# ==========================================
+# Bot用 .gitignore
+# ==========================================
+
+# Pythonキャッシュ
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 環境変数
+.env
+
+# データベース
+data/*.db
+
+# ログファイル
+*.log
+
+# VSCode / IDE設定
+.vscode/
+.idea/
+
+# Docker関連
+*.pid
+*.sock
+
+# OS固有
+.DS_Store
+Thumbs.db

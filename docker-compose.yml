@@ -1,0 +1,16 @@
+# ==========================================
+# docker-compose.yml
+# Discord Bot用（ローカル開発 & 永続化対応）
+# ==========================================
+
+version: "3.9"
+
+services:
+  bot:
+    build: .
+    container_name: discord-bot
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/app/data   # SQLite DBなど永続化
+    command: python -u main.py
