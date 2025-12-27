@@ -1,72 +1,78 @@
 # ==========================================
 # main.py
-# Discord Bot 起動用メインファイル
-# Cogロード + Slashコマンド同期対応
-# Koyeb用HealthCheck対応済み
+# Koyeb対応：即起動 + バックグラウンドコマンド同期
 # ==========================================
 import os
 import asyncio
-from discord.ext import commands
 import discord
+from discord.ext import commands
+from utils import db  # db.pyなどを使用する場合
 
-intents = discord.Intents.all()
-bot = commands.Bot(command_prefix="/", intents=intents)
+# Botの設定
+intents = discord.Intents.default()
+intents.members = True  # メンバー関連の処理がある場合
+
+bot = commands.Bot(
+    command_prefix="/",
+    intents=intents,
+    application_id=int(os.environ.get("APP_ID", 0))  # App ID必須
+)
 
 # ==========================================
-# Cogを非同期でロード
+# Cog読み込み関数
 # ==========================================
 async def load_cogs():
-    for extension in [
+    cogs = [
         "cogs.admin",
         "cogs.moderation",
-        "cogs.general",
         "cogs.tickets",
         "cogs.youtube_notification",
+        "cogs.general",
         "cogs.stats"
-    ]:
+    ]
+    for cog in cogs:
         try:
-            await bot.load_extension(extension)
-            print(f"[INFO] Cog loaded: {extension}")
+            await bot.load_extension(cog)
+            print(f"[INFO] Cog loaded: {cog}")
         except Exception as e:
-            print(f"[ERROR] Failed to load {extension}: {e}")
+            print(f"[ERROR] Failed to load {cog}: {e}")
 
 # ==========================================
-# setup_hook で Cogロード + コマンド同期
+# コマンド同期関数（バックグラウンド）
 # ==========================================
-@bot.event
-async def setup_hook():
-    # Cogをロード
-    await load_cogs()
-
-    # グローバル同期（サーバーにSlashコマンドを登録）
+async def sync_commands_background():
+    await bot.wait_until_ready()
     try:
+        # テストサーバーIDを指定すると即反映される
+        TEST_GUILD_ID = int(os.environ.get("TEST_GUILD_ID", 0))
+        if TEST_GUILD_ID:
+            guild = discord.Object(id=TEST_GUILD_ID)
+            await bot.tree.sync(guild=guild)
+            print("[INFO] Commands synced to test server!")
+        # グローバル同期もバックグラウンドで
         await bot.tree.sync()
-        print("[INFO] Application commands synced globally!")
+        print("[INFO] Global commands synced!")
     except Exception as e:
         print(f"[ERROR] Failed to sync commands: {e}")
 
 # ==========================================
-# HealthCheck用簡易Webサーバー
+# 起動時イベント
 # ==========================================
-from flask import Flask
-app = Flask(__name__)
-
-@app.route("/")
-def index():
-    return "Bot is running!", 200
-
-# 別スレッドでFlaskを起動
-import threading
-def run_flask():
-    app.run(host="0.0.0.0", port=8080)
-
-threading.Thread(target=run_flask, daemon=True).start()
+@bot.event
+async def on_ready():
+    print(f"[INFO] Bot is ready: {bot.user} (ID: {bot.user.id})")
+    print(f"[INFO] Servers: {[guild.name for guild in bot.guilds]}")
 
 # ==========================================
-# Botを起動
+# main処理
 # ==========================================
-if __name__ == "__main__":
-    token = os.environ.get("BOT_TOKEN")
-    if not token:
-        raise RuntimeError("BOT_TOKEN が設定されていません！")
-    bot.run(token)
+async def main():
+    # Cog読み込み
+    await load_cogs()
+    # コマンド同期をバックグラウンドで
+    bot.loop.create_task(sync_commands_background())
+    # Bot起動
+    await bot.start(os.environ["BOT_TOKEN"])
+
+# 非同期メインを実行
+asyncio.run(main())
