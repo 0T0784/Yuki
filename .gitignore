@@ -1,29 +1,68 @@
-# ==========================================
-# Bot用 .gitignore
-# ==========================================
-
-# Pythonキャッシュ
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 仮想環境
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
 
 # 環境変数
 .env
+.env.local
 
 # データベース
-data/*.db
+data/
+*.db
+*.sqlite
+*.sqlite3
 
 # ログファイル
+logs/
 *.log
 
-# VSCode / IDE設定
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# Docker関連
-*.pid
-*.sock
-
-# OS固有
+# OS
 .DS_Store
 Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# テスト
+.pytest_cache/
+.coverage
+htmlcov/
+
+# その他
+*.bak
+*.tmp
+temp/
