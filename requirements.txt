@@ -1,0 +1,16 @@
+# Discord Bot用の依存関係
+
+# Discord.py - Discordとの連携
+discord.py==2.3.2
+
+# python-dotenv - 環境変数の管理
+python-dotenv==1.0.0
+
+# aiosqlite - 非同期SQLiteデータベース
+aiosqlite==0.19.0
+
+# Flask - キープアライブサーバー用
+Flask==3.0.0
+
+# pytz - タイムゾーン処理
+pytz==2023.3
