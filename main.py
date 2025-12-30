@@ -21,7 +21,7 @@ load_dotenv()
 logger = setup_logger()
 
 # Botのインテント設定
-intents = discord.Intents.default()
+intents = discord.Intents.all()  # すべてのインテントを有効化
 intents.message_content = True  # メッセージ内容の取得
 intents.members = True  # メンバー情報の取得
 intents.guilds = True  # サーバー情報の取得
@@ -149,6 +149,9 @@ async def load_extensions():
         
         # ログ系コマンド
         'commands.logs.logs',
+        
+        # リアクションロール系コマンド
+        'commands.roles.reactionrole',
     ]
     
     for extension in extensions:
