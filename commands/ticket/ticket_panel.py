@@ -315,9 +315,6 @@ class TicketButton(View):
             if not category:
                 category = await interaction.guild.create_category("Tickets")
             
-            # チケットチャンネルの作成
-            channel_name = f"ticket-{interaction.user.name.lower()}-{interaction.user.discriminator}"
-            
             # 権限設定
             overwrites = {
                 interaction.guild.default_role: discord.PermissionOverwrite(read_messages=False),
