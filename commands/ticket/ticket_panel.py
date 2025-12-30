@@ -9,6 +9,7 @@ from discord.ext import commands
 from discord.ui import Button, View
 from datetime import datetime
 import io
+import asyncio
 from utils.logger import get_logger
 from utils.database import Database
 
@@ -205,6 +206,63 @@ class TicketLogButton(View):
                 ephemeral=True
             )
             logger.error(f'ログ生成エラー: {e}')
+    
+    @discord.ui.button(
+        label="🗑️ チケット削除",
+        style=discord.ButtonStyle.danger,
+        custom_id="delete_ticket_button"
+    )
+    async def delete_ticket(self, interaction: discord.Interaction, button: Button):
+        """
+        チケット削除ボタンが押された時の処理
+        
+        Args:
+            interaction: インタラクション
+            button: ボタン
+        """
+        # 管理者のみ削除可能
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message(
+                "❌ チケットを削除できるのは管理者のみです。",
+                ephemeral=True
+            )
+            return
+        
+        try:
+            # データベースから削除
+            db = Database()
+            await db.initialize()
+            
+            await db.connection.execute('''
+                DELETE FROM tickets
+                WHERE channel_id = ? AND guild_id = ?
+            ''', (interaction.channel.id, interaction.guild_id))
+            
+            await db.connection.commit()
+            
+            # 削除通知を送信
+            await interaction.response.send_message(
+                "✅ 3秒後にこのチケットチャンネルを削除します...",
+                ephemeral=True
+            )
+            
+            # 3秒待機
+            await asyncio.sleep(3)
+            
+            # チャンネルを削除
+            await interaction.channel.delete(reason=f"チケット削除: {interaction.user.name}")
+            
+            logger.info(f'{interaction.user.name}がチケットチャンネルを削除しました: {interaction.channel.name}')
+        
+        except Exception as e:
+            try:
+                await interaction.followup.send(
+                    f"❌ チケット削除中にエラーが発生しました: {str(e)}",
+                    ephemeral=True
+                )
+            except:
+                pass
+            logger.error(f'チケット削除エラー: {e}')
 
 
 class TicketButton(View):
